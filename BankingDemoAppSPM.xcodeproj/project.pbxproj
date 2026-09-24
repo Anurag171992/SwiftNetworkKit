@@ -6,6 +6,10 @@
 	objectVersion = 110;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		75F60AD83064CBF5008EFB4B /* BankingNetworkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 75F60AD73064CBF5008EFB4B /* BankingNetworkKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		75F60AAD3064C8E9008EFB4B /* BankingDemoAppSPM.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BankingDemoAppSPM.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -22,6 +26,7 @@
 		75F60AAA3064C8E9008EFB4B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				75F60AD83064CBF5008EFB4B /* BankingNetworkKit in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -31,6 +36,7 @@
 			isa = PBXGroup;
 			children = (
 				75F60AAF3064C8E9008EFB4B /* BankingDemoAppSPM */,
+				75F60AD63064CBF5008EFB4B /* Frameworks */,
 				75F60AAE3064C8E9008EFB4B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +47,13 @@
 				75F60AAD3064C8E9008EFB4B /* BankingDemoAppSPM.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		75F60AD63064CBF5008EFB4B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -60,6 +73,9 @@
 				75F60AAF3064C8E9008EFB4B /* BankingDemoAppSPM */,
 			);
 			name = BankingDemoAppSPM;
+			packageProductDependencies = (
+				75F60AD73064CBF5008EFB4B /* BankingNetworkKit */,
+			);
 			productName = BankingDemoAppSPM;
 			productReference = 75F60AAD3064C8E9008EFB4B /* BankingDemoAppSPM.app */;
 			productType = "com.apple.product-type.application";
@@ -88,6 +104,9 @@
 			);
 			mainGroup = 75F60AA43064C8E9008EFB4B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				75F60ABB3064C94F008EFB4B /* XCLocalSwiftPackageReference "../BankingNetworkKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 75F60AAE3064C8E9008EFB4B /* Products */;
 			projectDirPath = "";
@@ -339,6 +358,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		75F60ABB3064C94F008EFB4B /* XCLocalSwiftPackageReference "../BankingNetworkKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = ../BankingNetworkKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		75F60AD73064CBF5008EFB4B /* BankingNetworkKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 75F60ABB3064C94F008EFB4B /* XCLocalSwiftPackageReference "../BankingNetworkKit" */;
+			productName = BankingNetworkKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 75F60AA53064C8E9008EFB4B /* Project object */;
 	validationLevel = 1;

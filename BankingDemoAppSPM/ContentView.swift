@@ -6,14 +6,15 @@
 //
 
 import SwiftUI
+import BankingNetworkKit
 
 struct ContentView: View {
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Button("Test NetworkKit") {
+                let client = BankingNetworkClient()
+                client.testConnection()
+            }
         }
         .padding()
     }

@@ -5,6 +5,11 @@ import PackageDescription
 
 let package = Package(
     name: "BankingNetworkKit",
+    
+    platforms: [
+        .iOS(.v15)
+    ],
+    
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
@@ -30,3 +35,24 @@ let package = Package(
         ),
     ]
 )
+
+/*
+ 
+ BankingNetworkKit
+        │
+      PACKAGE
+        │
+┌─────────┴─────────┐
+│                   │
+PRODUCT             TARGETS
+│                   │
+BankingNetworkKit       ┌─────┴─────────────┐
+│             │                   │
+└──────→ BankingNetworkKit   BankingNetworkKitTests
+           Target               Target
+             │                    │
+             ↓                    │
+           Module ←───────────────┘
+                      depends on
+ 
+*/

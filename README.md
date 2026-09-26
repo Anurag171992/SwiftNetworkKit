@@ -298,7 +298,7 @@ Feature code only needs to understand the public networking interface rather tha
 
 ---
 
-## 🎓 Concepts Demonstrated
+## 🎓 Concepts to be Demonstrated
 
 This repository demonstrates practical usage of:
 

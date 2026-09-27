@@ -14,9 +14,10 @@ public protocol Endpoint {
     
     //Example: accountID: Value, limit: Value
     //Nil: Parameters are not required for every endpoint.
-    //nil clearly represents that this endpoint doesn't have query parameters.
+    //nil clearly represents that this endpoint doesn't have query parameters, headers, body.
     var queryParameters: [String: String]? { get }
     var headers: [String: String]? { get }
+    var body: (any Encodable)? { get }
 }
 
 /*
@@ -28,6 +29,10 @@ public extension Endpoint {
     }
     
     var headers: [String: String]? {
-        nil
+        return nil
+    }
+    
+    var body: (any Encodable)? {
+        return nil
     }
 }

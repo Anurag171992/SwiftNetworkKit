@@ -10,15 +10,17 @@ import Foundation
 public struct APIClient {
     
     private let requestBuilder: RequestBuilder
-    
-    public init(requestBuilder: RequestBuilder) {
+    private let session: any NetworkSession
+
+    public init(requestBuilder: RequestBuilder, session: any NetworkSession) {
         self.requestBuilder = requestBuilder
+        self.session = session
     }
     
     public func request<T: Decodable>(endpoint: any Endpoint, responseType: T.Type) async throws -> T {
         
         let request = try requestBuilder.buildRequest(from: endpoint)
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw NetworkError.invalidResponse

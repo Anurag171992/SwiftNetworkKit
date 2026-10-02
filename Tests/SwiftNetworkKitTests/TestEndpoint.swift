@@ -1,6 +1,6 @@
 //
 //  TestEndpoint.swift
-//  BankingNetworkKit
+//  SwiftNetworkKit
 //
 //  Created by Anurag on 02/10/26.
 //

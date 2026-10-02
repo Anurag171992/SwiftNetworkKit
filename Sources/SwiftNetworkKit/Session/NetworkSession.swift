@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  BankingNetworkKit
+//  NetworkSession.swift
+//  SwiftNetworkKit
 //
 //  Created by Anurag on 02/10/26.
 //

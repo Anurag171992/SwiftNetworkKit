@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  BankingNetworkKit
+//  HTTPMethod.swift
+//  SwiftNetworkKit
 //
 //  Created by Anurag on 26/09/26.
 //

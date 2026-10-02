@@ -1,6 +1,6 @@
 //
-//  File.swift
-//  BankingNetworkKit
+//  Endpoint.swift
+//  SwiftNetworkKit
 //
 //  Created by Anurag on 26/09/26.
 //

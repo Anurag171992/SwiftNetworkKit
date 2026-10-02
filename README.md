@@ -1,278 +1,472 @@
+# SwiftNetworkKit
 
-# SwiftNetworkKit - Work In Progress
+A lightweight, reusable, and testable networking layer for iOS applications built with **Swift**, **Swift Package Manager (SPM)**, and **Swift Concurrency**.
 
-A modular, reusable, and testable networking layer for iOS applications built with **Swift**, **Swift Package Manager (SPM)**, and **Swift Concurrency**.
-
-BankingNetworkKit demonstrates how a production-style networking layer can be separated from an iOS application into an independent Swift Package with clear module boundaries, type-safe APIs, dependency injection, structured error handling, and unit testing.
-
-The project uses a banking application as the practical use case.
+SwiftNetworkKit separates common networking infrastructure from application-specific feature code. It provides endpoint-based request configuration, request building, generic response decoding, dependency injection, HTTP response validation, structured error handling, and testable network execution.
 
 ---
 
 ## 🚀 Features
 
-* Swift Package Manager based modular architecture
-* Type-safe HTTP methods
-* Endpoint-based API design
-* URLRequest construction
-* Generic networking layer
-* Generic `Decodable` response handling
-* Swift Concurrency with `async/await`
-* HTTP status-code validation
-* Structured network error handling
-* Dependency injection
-* Protocol-oriented architecture
-* Mock networking implementations
-* Unit testing with XCTest
-* Clear public and internal API boundaries
-* Separation of networking infrastructure from feature code
+- Swift Package Manager based reusable networking library
+- Type-safe HTTP methods
+- Endpoint-based API design
+- URLRequest construction
+- Query parameter support
+- Custom request headers
+- Encodable request body support
+- Generic `Decodable` response handling
+- Swift Concurrency with `async/await`
+- HTTP status-code validation
+- Structured network errors using `LocalizedError`
+- Dependency injection
+- Protocol-based network session abstraction
+- Mock networking support
+- Unit testing with XCTest
+- Separation of networking infrastructure from application-specific code
 
 ---
 
 ## 🏗 Architecture
 
-The networking flow follows a layered approach:
-
 ```text
-Banking Application
+Consumer Application
         │
         ▼
      Endpoint
         │
         ▼
-   Request Builder
+  RequestBuilder
         │
         ▼
-     API Client
+    APIClient
         │
         ▼
-    URLSession
+ NetworkSession
         │
         ▼
-   HTTP Response
+   URLSession
         │
         ▼
-Response Validation
+ Data + URLResponse
         │
         ▼
- JSON Decoding
+HTTPURLResponse
+        │
+        ▼
+Status Validation
+        │
+        ▼
+   JSONDecoder
         │
         ▼
  Decodable Model
 ```
 
-The application does not need to know the internal implementation details of the networking layer.
+Each component has a focused responsibility.
 
-It communicates with BankingNetworkKit through a small, clearly defined public API.
+The consuming application defines its own endpoints and response models, while SwiftNetworkKit handles the reusable networking infrastructure.
 
 ---
 
-## 📦 Swift Package Structure
+## 📦 Package Structure
 
 ```text
-BankingNetworkKit
+SwiftNetworkKit
 │
 ├── Package.swift
 │
 ├── Sources
-│   └── BankingNetworkKit
-│       ├── HTTPMethod.swift
-│       ├── Endpoint.swift
-│       ├── APIClient.swift
-│       ├── NetworkError.swift
-│       ├── RequestBuilder.swift
-│       └── ResponseValidator.swift
+│   └── SwiftNetworkKit
+│       ├── APIClient
+│       │   └── APIClient.swift
+│       ├── Endpoint
+│       │   ├── Endpoint.swift
+│       │   └── HTTPMethod.swift
+│       ├── Error
+│       │   └── NetworkError.swift
+│       ├── Request
+│       │   └── RequestBuilder.swift
+│       └── Session
+│           └── NetworkSession.swift
 │
 └── Tests
-    └── BankingNetworkKitTests
+    └── SwiftNetworkKitTests
         ├── APIClientTests.swift
-        ├── RequestBuilderTests.swift
-        └── MockNetworkClient.swift
+        ├── MockNetworkSession.swift
+        ├── TestEndpoint.swift
+        └── TestUser.swift
 ```
-
-The exact implementation is organized so that each component has a focused responsibility.
 
 ---
 
 ## 🌐 Type-Safe HTTP Methods
 
-Instead of spreading raw HTTP strings throughout the application:
+Instead of using raw HTTP method strings throughout an application:
 
 ```swift
 request.httpMethod = "GET"
 ```
 
-BankingNetworkKit provides type-safe HTTP methods:
+SwiftNetworkKit provides a type-safe `HTTPMethod`:
+
+```swift
+public enum HTTPMethod: String {
+    case get = "GET"
+    case post = "POST"
+    case put = "PUT"
+    case patch = "PATCH"
+    case delete = "DELETE"
+}
+```
+
+Example:
 
 ```swift
 let method: HTTPMethod = .get
 ```
 
-Supported methods include:
-
-```text
-GET
-POST
-PUT
-PATCH
-DELETE
-```
-
-This reduces string-based mistakes and makes endpoint definitions easier to understand.
-
 ---
 
 ## 🎯 Endpoint-Based API Design
 
-API configuration is represented using endpoints.
+An `Endpoint` describes what is required to make a request.
 
-An endpoint describes information required to construct a network request, such as:
+```swift
+public protocol Endpoint {
+    var path: String { get }
+    var method: HTTPMethod { get }
+    var queryParameters: [String: String]? { get }
+    var headers: [String: String]? { get }
+    var body: (any Encodable)? { get }
+}
+```
 
-* Path
-* HTTP method
-* Query parameters
-* Headers
-* Request body
+Optional values have default implementations, allowing simple endpoints to define only what they require.
 
-This keeps API definitions separate from the code responsible for executing network requests.
+Application-specific endpoints remain in the consuming application.
+
+Example:
+
+```swift
+enum UserEndpoint {
+    case user(id: Int)
+}
+
+extension UserEndpoint: Endpoint {
+
+    var path: String {
+        switch self {
+        case .user(let id):
+            return "/users/\(id)"
+        }
+    }
+
+    var method: HTTPMethod {
+        .get
+    }
+}
+```
+
+SwiftNetworkKit does not need to understand what a user, account, payment, or transaction represents.
 
 ---
 
 ## 🔨 Request Building
 
-BankingNetworkKit converts endpoint definitions into `URLRequest` instances.
+`RequestBuilder` converts an `Endpoint` into a `URLRequest`.
 
-Request construction is responsible for configuring values such as:
+It is responsible for:
 
 ```text
-Base URL
-Path
-HTTP Method
-Headers
+Base URL + Path
+        ↓
 Query Parameters
-HTTP Body
+        ↓
+HTTP Method
+        ↓
+Headers
+        ↓
+Request Body
+        ↓
+URLRequest
 ```
 
-Separating request construction from request execution keeps the networking layer easier to maintain and test.
+Example:
+
+```swift
+let requestBuilder = RequestBuilder(
+    baseURL: URL(string: "https://api.example.com")!
+)
+```
+
+The base URL is injected rather than being hardcoded inside individual endpoints.
+
+This allows the consuming application to control the server/environment configuration.
 
 ---
 
-## ⚡ Swift Concurrency
+## ⚡ APIClient
 
-Network requests use Swift's modern concurrency model with:
-
-```swift
-async/await
-```
-
-For example, the networking layer can expose an API conceptually similar to:
+`APIClient` coordinates request execution, response validation, and decoding.
 
 ```swift
-let account: Account = try await apiClient.request(endpoint)
+let apiClient = APIClient(
+    requestBuilder: requestBuilder,
+    session: URLSession.shared
+)
 ```
 
-This provides readable asynchronous networking code while supporting Swift's structured concurrency model.
+A request can then be performed using any `Endpoint`:
+
+```swift
+let user: UserResponse = try await apiClient.request(
+    endpoint: UserEndpoint.user(id: 1),
+    responseType: UserResponse.self
+)
+```
+
+Internally:
+
+```text
+Endpoint
+   ↓
+RequestBuilder
+   ↓
+URLRequest
+   ↓
+NetworkSession
+   ↓
+Data + URLResponse
+   ↓
+HTTP Validation
+   ↓
+JSONDecoder
+   ↓
+T
+```
 
 ---
 
 ## 🧩 Generic Response Decoding
 
-BankingNetworkKit supports generic `Decodable` responses.
+`APIClient` supports any response type conforming to `Decodable`.
 
-The networking layer can therefore decode different API responses without creating separate networking implementations for every model.
+```swift
+public func request<T: Decodable>(
+    endpoint: any Endpoint,
+    responseType: T.Type
+) async throws -> T
+```
 
 For example:
 
 ```swift
-let account: Account = try await client.request(endpoint)
-let transactions: [Transaction] = try await client.request(endpoint)
+let user: UserResponse = try await apiClient.request(
+    endpoint: UserEndpoint.user(id: 1),
+    responseType: UserResponse.self
+)
 ```
 
-The expected response type determines how the returned JSON is decoded.
+The networking package does not need to know about `UserResponse`.
+
+It only knows that `T` conforms to `Decodable`.
 
 ---
 
 ## ⚠️ Error Handling
 
-Networking failures are represented using structured errors rather than exposing arbitrary implementation details throughout the application.
+SwiftNetworkKit provides structured networking errors using `LocalizedError`.
 
-Errors can represent scenarios such as:
+```swift
+public enum NetworkError: LocalizedError {
+    case invalidURL
+    case invalidResponse
+    case httpError(statusCode: Int)
+}
+```
+
+The current error handling covers:
 
 ```text
 Invalid URL
-Invalid Request
-Transport Failure
-Invalid HTTP Response
-HTTP Status Code Failure
-Decoding Failure
+Invalid HTTP response
+Non-success HTTP status codes
 ```
 
-This allows feature modules to handle networking failures consistently.
+HTTP status codes can also provide readable descriptions.
+
+Examples:
+
+```text
+400 → HTTP request failed, Bad request
+401 → HTTP request failed, Unauthorized
+403 → HTTP request failed, Forbidden
+404 → HTTP request failed, Not found
+408 → HTTP request failed, Request timed out
+429 → HTTP request failed, Too many requests
+500 → HTTP request failed, Internal server error
+502 → HTTP request failed, Bad gateway
+503 → HTTP request failed, Service unavailable
+```
+
+Unmapped HTTP status codes fall back to:
+
+```text
+Unknown HTTP error
+```
 
 ---
 
-## ✅ Response Validation
+## ✅ HTTP Response Validation
 
-HTTP responses are validated before response data is decoded.
+Completing a network request does not necessarily mean the HTTP request was successful.
 
-The networking layer verifies that the response is valid and evaluates HTTP status codes before passing data to the decoding layer.
+For example, a server can successfully return:
 
-Successful responses continue through the decoding pipeline, while failures are converted into appropriate networking errors.
+```text
+404 Not Found
+500 Internal Server Error
+```
+
+SwiftNetworkKit first verifies that the returned `URLResponse` is an `HTTPURLResponse`.
+
+It then validates the HTTP status code:
+
+```text
+200...299
+    ↓
+Successful HTTP response
+    ↓
+Decode Data
+
+Other status code
+    ↓
+NetworkError.httpError(statusCode:)
+```
+
+This keeps HTTP validation inside the networking layer rather than duplicating it across application features.
 
 ---
 
 ## 💉 Dependency Injection
 
-BankingNetworkKit is designed around dependency injection and protocol abstractions.
+`APIClient` does not hardcode `URLSession.shared`.
 
-Instead of tightly coupling feature code to a concrete networking implementation, dependencies can be provided from outside.
+Instead, it depends on the `NetworkSession` abstraction:
 
-This makes the networking layer easier to replace, configure, and test.
+```swift
+public protocol NetworkSession {
+    func data(
+        for request: URLRequest
+    ) async throws -> (Data, URLResponse)
+}
+```
+
+`URLSession` conforms to this protocol:
+
+```swift
+extension URLSession: NetworkSession {}
+```
+
+Production usage:
+
+```text
+APIClient
+    ↓
+NetworkSession
+    ↓
+URLSession.shared
+    ↓
+Real Network
+```
+
+Testing:
+
+```text
+APIClient
+    ↓
+NetworkSession
+    ↓
+MockNetworkSession
+    ↓
+Fake Data + Response
+```
+
+This allows the network execution dependency to be replaced without changing `APIClient`.
 
 ---
 
-## 🧪 Testability & Mocking
+## 🧪 Unit Testing & Mocking
 
-The networking architecture is designed with testing in mind.
+SwiftNetworkKit uses XCTest and a mock implementation of `NetworkSession`.
 
-Protocol abstractions allow real networking implementations to be replaced with mocks during unit tests.
+Instead of making real network requests during unit tests, the mock can return predefined `Data` and `URLResponse` values.
 
-This enables testing application behavior without making real network requests.
+```text
+Fake Data + HTTP Response
+            ↓
+    MockNetworkSession
+            ↓
+        APIClient
+            ↓
+ Validation + Decoding
+            ↓
+         Assert
+```
 
-The package includes XCTest coverage for important networking components such as:
+This makes networking tests deterministic and independent of a real server.
 
-* Request creation
-* HTTP methods
-* Endpoint configuration
-* Successful responses
-* HTTP failures
-* Invalid responses
-* Decoding failures
-* Mock API responses
+The current tests cover successful response decoding and HTTP error handling scenarios such as:
+
+```text
+200 → Successful decoding
+400 → Bad Request
+404 → Not Found
+500 → Internal Server Error
+```
 
 ---
 
 ## 🔐 Module Boundaries
 
-BankingNetworkKit uses Swift access control to maintain clear module boundaries.
-
-Only APIs required by package consumers are exposed as `public`.
-
-Implementation details remain `internal` whenever possible.
+SwiftNetworkKit owns generic networking infrastructure:
 
 ```text
-BankingDemoApp
-      │
-      │ Public API
-      ▼
-BankingNetworkKit
-      │
-      ├── Public interfaces
-      │
-      └── Internal implementation details
+SwiftNetworkKit
+│
+├── Endpoint
+├── HTTPMethod
+├── RequestBuilder
+├── APIClient
+├── NetworkSession
+└── NetworkError
 ```
 
-This keeps the public API small and prevents consumers from becoming dependent on internal implementation details.
+The consuming application owns application-specific code:
+
+```text
+Consumer Application
+│
+├── UserEndpoint
+├── AccountEndpoint
+├── PaymentEndpoint
+├── UserResponse
+├── AccountResponse
+└── Feature / Business Logic
+```
+
+Dependency direction:
+
+```text
+Consumer Application
+        │
+        │ import SwiftNetworkKit
+        ▼
+   SwiftNetworkKit
+```
+
+SwiftNetworkKit does not depend on the consuming application.
 
 ---
 
@@ -281,54 +475,112 @@ This keeps the public API small and prevents consumers from becoming dependent o
 Import the package:
 
 ```swift
-import BankingNetworkKit
+import SwiftNetworkKit
 ```
 
-Create or inject the networking client and perform requests using the package's public API.
+Create the request builder:
 
 ```swift
-let client = APIClient()
-
-let account: Account = try await client.request(
-    endpoint
+let requestBuilder = RequestBuilder(
+    baseURL: URL(string: "https://api.example.com")!
 )
 ```
 
-Feature code only needs to understand the public networking interface rather than the underlying `URLSession`, request construction, validation, and decoding implementation.
+Create the API client:
+
+```swift
+let apiClient = APIClient(
+    requestBuilder: requestBuilder,
+    session: URLSession.shared
+)
+```
+
+Define an application-specific endpoint:
+
+```swift
+enum UserEndpoint {
+    case user(id: Int)
+}
+
+extension UserEndpoint: Endpoint {
+
+    var path: String {
+        switch self {
+        case .user(let id):
+            return "/users/\(id)"
+        }
+    }
+
+    var method: HTTPMethod {
+        .get
+    }
+}
+```
+
+Define the application's response model:
+
+```swift
+struct UserResponse: Decodable {
+    let id: Int
+    let name: String
+}
+```
+
+Perform the request:
+
+```swift
+let user: UserResponse = try await apiClient.request(
+    endpoint: UserEndpoint.user(id: 1),
+    responseType: UserResponse.self
+)
+```
 
 ---
 
-## 🎓 Concepts to be Demonstrated
+## 🎓 Concepts Demonstrated
 
-This repository demonstrates practical usage of:
+SwiftNetworkKit demonstrates practical usage of:
 
-* Swift Package Manager
-* iOS modularization
-* Swift module boundaries
-* Access control
-* Dependency management
-* Protocol-oriented programming
-* Dependency injection
-* Generics
-* Codable / Decodable
-* URLSession
-* URLRequest
-* HTTP fundamentals
-* Swift Concurrency
-* async/await
-* Error propagation
-* Mocking
-* XCTest
-* Testable architecture
+- Swift Package Manager
+- iOS modularization
+- Swift module boundaries
+- Access control
+- Protocol-oriented programming
+- Dependency injection
+- Generics
+- `Encodable`
+- `Decodable`
+- `URL`
+- `URLComponents`
+- `URLQueryItem`
+- `URLRequest`
+- `URLSession`
+- `URLResponse`
+- `HTTPURLResponse`
+- HTTP status codes
+- Swift Concurrency
+- `async/await`
+- Error propagation
+- `LocalizedError`
+- Mocking
+- XCTest
 
 ---
 
 ## 🎯 Project Goal
 
-The goal of BankingNetworkKit is not simply to wrap `URLSession`.
+SwiftNetworkKit is designed as a reusable networking foundation rather than a domain-specific networking implementation.
 
-It demonstrates how to design a networking layer as an independent module with clear responsibilities and boundaries.
+The package handles generic networking concerns while allowing the consuming application to own its business-specific endpoints, models, and feature logic.
 
-The package provides a practical foundation for understanding how networking infrastructure can be structured in larger iOS applications such as banking, fintech, e-commerce, or other API-driven applications.
+```text
+Application-specific code
+          │
+          ▼
+     SwiftNetworkKit
+          │
+          ▼
+       Network
+```
 
-It also serves as a hands-on reference for Swift Package Manager, modular architecture, networking design, Swift Concurrency, dependency injection, and unit testing.
+The goal is not simply to wrap `URLSession`, but to demonstrate how networking infrastructure can be designed with clear responsibilities, module boundaries, dependency injection, generic decoding, Swift Concurrency, and testability.

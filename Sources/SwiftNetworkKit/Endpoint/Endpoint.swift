@@ -11,10 +11,6 @@ import Foundation
 public protocol Endpoint {
     var path: String { get }
     var method: HTTPMethod { get }
-    
-    //Example: accountID: Value, limit: Value
-    //Nil: Parameters are not required for every endpoint.
-    //nil clearly represents that this endpoint doesn't have query parameters, headers, body.
     var queryParameters: [String: String]? { get }
     var headers: [String: String]? { get }
     var body: (any Encodable)? { get }

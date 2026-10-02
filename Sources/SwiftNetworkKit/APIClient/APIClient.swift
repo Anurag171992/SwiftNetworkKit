@@ -20,7 +20,7 @@ public struct APIClient {
     public func request<T: Decodable>(endpoint: any Endpoint, responseType: T.Type) async throws -> T {
         
         let request = try requestBuilder.buildRequest(from: endpoint)
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await session.data(for: request) //Here the call is decided if from Server or Mock.
         
         guard let httpResponse = response as? HTTPURLResponse else {
             throw NetworkError.invalidResponse

@@ -1,5 +1,5 @@
 
-# BankingNetworkKit - Work In Progress
+# SwiftNetworkKit - Work In Progress
 
 A modular, reusable, and testable networking layer for iOS applications built with **Swift**, **Swift Package Manager (SPM)**, and **Swift Concurrency**.
 
